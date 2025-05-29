@@ -1,45 +1,38 @@
+// server.js
 const express = require('express');
-const multer = require('multer');
-const cors = require('cors');
-const path = require('path');
-const dotenv = require('dotenv');
-const { OpenAI } = require('openai');
-
-dotenv.config();
+const fetch = require('node-fetch');
+require('dotenv').config(); // Load environment variables
 
 const app = express();
 const PORT = process.env.PORT || 2000;
-const upload = multer({ dest: 'uploads/' });
 
-app.use(cors());
-app.use(express.static('public'));
+// Middleware to parse JSON
+app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-app.post('/api/chat', upload.single('file'), async (req, res) => {
-  const { model, prompt } = req.body;
-
-  if (!prompt || !model) {
-    return res.status(400).json({ error: 'Model and prompt are required' });
-  }
-
+app.post('/api/chat', async (req, res) => {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // or "gpt-4"
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7
+    const userMessage = req.body.message;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: userMessage }],
+      }),
     });
 
-    const reply = completion.choices[0].message.content;
-    res.json({ response: reply });
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
-    console.error("Error from OpenAI:", err);
-    res.status(500).json({ error: 'Failed to connect to OpenAI' });
+    console.error('Error talking to OpenAI:', err);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`🔥 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
