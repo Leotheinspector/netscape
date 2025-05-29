@@ -14,7 +14,7 @@ document.querySelector('button').addEventListener('click', async () => {
   responseBox.innerText = "Thinking... 🤔";
 
   try {
-    const res = await fetch('/api/chat', { method: 'POST', body: formData });
+    const res = await fetch('/netscape/api/chat', { method: 'POST', body: formData });
     const data = await res.json();
     responseBox.innerText = data.response;
   } catch (err) {
