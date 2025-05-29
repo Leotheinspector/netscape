@@ -1,6 +1,7 @@
 // server.js 
 const express = require('express');
 const fetch = require('node-fetch');
+const path = require('path');
 require('dotenv').config(); // Load environment variables
 
 const app = express();
@@ -8,6 +9,14 @@ const PORT = process.env.PORT || 2000;
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Serve static files under /netscape from the public folder
+app.use('/netscape', express.static(path.join(__dirname, 'public')));
+
+// Handle GET /netscape to serve index.html (if needed for SPA or home screen)
+app.get('/netscape', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.post('/api/chat', async (req, res) => {
   try {
