@@ -1,6 +1,25 @@
+const express = require('express');
+const fetch = require('node-fetch');
 const multer = require('multer');
-const upload = multer(); // for parsing multipart/form-data
+const path = require('path');
+require('dotenv').config();
 
+const app = express(); // ← This line must come BEFORE any app.get or app.post
+const PORT = process.env.PORT || 2000;
+
+const upload = multer(); // For handling multipart/form-data
+
+// Middleware
+app.use(express.json());
+
+// Static route to serve frontend under /netscape
+app.use('/netscape', express.static(path.join(__dirname, 'public')));
+
+app.get('/netscape', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ✅ API Route - must come AFTER app is defined
 app.post('/netscape/api/chat', upload.none(), async (req, res) => {
   try {
     const model = req.body.model || 'gpt-4';
@@ -33,4 +52,8 @@ app.post('/netscape/api/chat', upload.none(), async (req, res) => {
     console.error('Error in /netscape/api/chat:', err);
     res.status(500).json({ error: 'Something went wrong' });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
