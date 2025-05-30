@@ -4,32 +4,33 @@
   <meta charset="UTF-8">
   <title>LLM Netscape Explorer</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; max-width: 700px; margin: auto; }
-    textarea, select, input[type="file"], button { display: block; margin: 1rem 0; width: 100%; }
-    #response { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; min-height: 100px; }
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    label { display: block; margin-top: 1em; }
+    textarea, select, input { width: 100%; margin-top: 0.5em; }
+    button { margin-top: 1em; padding: 0.5em 1em; }
+    #response { margin-top: 2em; white-space: pre-wrap; background: #f8f8f8; padding: 1em; border-radius: 5px; }
   </style>
 </head>
 <body>
-  <h1>🧠 LLM Netscape Explorer (PoC)</h1>
-  <label for="model">Choose an LLM:</label>
+
+  <h1>LLM Netscape Explorer</h1>
+
+  <label for="model">Select Model:</label>
   <select id="model">
-    <option>Claude 3.5 Haiku</option>
-    <option>GPT-4.1</option>
-    <option>Meta Llama 3</option>
+    <option value="gpt-4">GPT-4</option>
+    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
   </select>
 
-  <label for="prompt">Enter your prompt:</label>
-  <textarea id="prompt" rows="5" placeholder="How can Netscape help you?"></textarea>
+  <label for="prompt">Your Prompt:</label>
+  <textarea id="prompt" rows="5"></textarea>
 
-  <label for="file">Attach a file (optional):</label>
-  <input type="file" id="file">
+  <label for="file">Attach File (optional):</label>
+  <input type="file" id="file" />
 
-  <button>🚀 Send to LLM</button>
+  <button>Send to GPT</button>
 
-  <h2>📝 Response:</h2>
-  <div id="response">Waiting for magic...</div>
+  <div id="response">Response will appear here...</div>
 
   <script src="main.js"></script>
-  
 </body>
 </html>

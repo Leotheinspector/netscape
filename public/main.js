@@ -1,5 +1,5 @@
 document.querySelector('button').addEventListener('click', async () => {
-  const model = document.getElementById('model').value;
+  const model = document.getElementById('model').value || 'gpt-4';
   const prompt = document.getElementById('prompt').value;
   const fileInput = document.getElementById('file');
   const responseBox = document.getElementById('response');
@@ -14,9 +14,19 @@ document.querySelector('button').addEventListener('click', async () => {
   responseBox.innerText = "Thinking... 🤔";
 
   try {
-    const res = await fetch('/netscape/api/chat', { method: 'POST', body: formData });
+    const res = await fetch('/netscape/api/chat', {
+      method: 'POST',
+      body: formData
+    });
+
     const data = await res.json();
-    responseBox.innerText = data.response;
+
+    if (res.ok && data.response) {
+      responseBox.innerText = data.response;
+    } else {
+      responseBox.innerText = '❌ Something went wrong.';
+      console.error(data.error || 'Unknown error');
+    }
   } catch (err) {
     responseBox.innerText = '❌ Something went wrong.';
     console.error(err);
