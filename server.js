@@ -7,13 +7,21 @@ require('dotenv').config();
 const app = express();
 const upload = multer();
 
-// Middleware
 app.use(express.json());
 
-// Serve Netscape frontend ONLY under /netscape
-app.use('/netscape', express.static(path.join(__dirname, 'public')));
+// Serve static homepage from public/
+app.use('/', express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-// API route
+// Serve netscape frontend
+app.use('/netscape', express.static(path.join(__dirname, 'public')));
+app.get('/netscape', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Netscape API endpoint
 app.post('/netscape/api/chat', upload.none(), async (req, res) => {
   try {
     const model = req.body.model || 'gpt-4';
@@ -36,7 +44,6 @@ app.post('/netscape/api/chat', upload.none(), async (req, res) => {
     });
 
     const data = await response.json();
-
     res.json({ response: data.choices[0].message.content });
   } catch (err) {
     console.error(err);
@@ -44,5 +51,4 @@ app.post('/netscape/api/chat', upload.none(), async (req, res) => {
   }
 });
 
-// ✅ REQUIRED for Vercel
 module.exports = app;
