@@ -12,6 +12,14 @@ const upload = multer(); // For handling multipart/form-data
 // Middleware
 app.use(express.json());
 
+
+// ✅ NEW: route for homepage at /
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/home.html');
+});
+
+
+
 // Static route to serve frontend under /netscape
 app.use('/netscape', express.static(path.join(__dirname, 'public')));
 
