@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Netscape — Case Study</title>
+  <style>
+    /* Minimal, functional CSS to match the app's current styling */
+    body {
+      font-family: sans-serif;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    h1, h2, h3, p, ul, ol {
+      margin: 0 0 1rem 0;
+    }
+    ul, ol {
+      padding-left: 1.25rem;
+    }
+
+    /* Form elements: full-width block with 1rem margins (kept for consistency, even if not used here) */
+    input, select, textarea, button {
+      display: block;
+      width: 100%;
+      margin: 1rem 0;
+      box-sizing: border-box;
+    }
+
+    /* Response box style (reused for diagram + callouts) */
+    .box {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      min-height: 100px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      margin: 0 0 1rem 0;
+    }
+
+    /* Small helper for subtle section separation (no colors, no branding) */
+    .divider {
+      margin: 1.5rem 0;
+    }
+
+    /* Keep code/diagram monospace but minimal */
+    pre {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      line-height: 1.35;
+      white-space: pre;
+    }
+
+    .meta {
+      margin-top: -0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Netscape</h1>
+	<h2><a href="/netscape/">Click here to go the App and skip the explanation</a></h2>
+    <p class="meta"><strong>LLM Integration &amp; Routing Proof of Concept</strong></p>
+
+    <h2>Overview</h2>
+    <p>
+      Netscape is a lightweight AI chat application built to explore how large language models (LLMs) can be
+      integrated into real systems through APIs.
+    </p>
+    <p>
+      The project intentionally focuses on architectural clarity, deployment fundamentals, and model abstraction
+      rather than UI polish or feature completeness.
+    </p>
+    <p>
+      Its purpose is to reduce ambiguity around AI adoption before teams commit to production-scale solutions.
+    </p>
+
+    <h2>Architecture Diagram</h2>
+    <div class="box" aria-label="Architecture diagram">
+      <pre>┌─────────────────────────────┐
+│        Web Browser          │
+│  index.html + main.js       │
+│  - Prompt input             │
+│  - Model selection          │
+│  - Optional file upload     │
+└─────────────┬───────────────┘
+              │ POST /api/chat
+              │
+┌─────────────▼───────────────┐
+│        Express Server       │
+│          server.js          │
+│                             │
+│  - CORS                     │
+│  - Multer (file handling)   │
+│  - Env config               │
+│  - Model routing logic      │
+└─────────────┬───────────────┘
+              │
+              │ Chat Completion Request
+              ▼
+┌─────────────────────────────┐
+│        OpenAI API           │
+│     (LLM Provider)          │
+└─────────────┬───────────────┘
+              │
+              │ Model Response
+              ▼
+┌─────────────────────────────┐
+│        Express Server       │
+└─────────────┬───────────────┘
+              │ JSON Response
+              ▼
+┌─────────────────────────────┐
+│        Web Browser          │
+│   Response Rendering        │
+└─────────────────────────────┘</pre>
+    </div>
+
+    <h2>Problem</h2>
+    <p>
+      Many teams evaluate AI tools in isolation — through browser-based chat interfaces or one-off scripts.
+      This makes it difficult to understand how LLMs behave when embedded inside real applications, combined
+      with internal data, and operated under practical constraints.
+    </p>
+    <p>
+      As a result, architectural decisions are often made without hands-on validation.
+    </p>
+
+    <h2>Goal</h2>
+    <p>Create a simple, deployable proof of concept that demonstrates:</p>
+    <ul>
+      <li>How to integrate an LLM via API</li>
+      <li>How to abstract model selection behind a backend</li>
+      <li>How a frontend can remain decoupled from AI providers</li>
+      <li>How this pattern can be extended to internal tools</li>
+    </ul>
+
+    <h2>Architecture Overview</h2>
+    <p>The application follows a straightforward client–server design.</p>
+
+    <h3>Frontend</h3>
+    <ul>
+      <li>Basic HTML interface for prompt input, model selection, and optional file upload</li>
+      <li>Sends requests to the backend via HTTP</li>
+    </ul>
+
+    <h3>Backend</h3>
+    <ul>
+      <li>Express.js server</li>
+      <li>Handles request processing, model routing, file uploads, and secure API key usage</li>
+      <li>Communicates with the LLM provider via API</li>
+    </ul>
+
+    <h3>External Service</h3>
+    <ul>
+      <li>OpenAI API (currently using <code>gpt-3.5-turbo</code>)</li>
+    </ul>
+
+    <p>
+      All LLM interaction is owned by the backend. The frontend never accesses the provider directly.
+    </p>
+
+    <h2>How It Works</h2>
+    <ol>
+      <li>A user enters a prompt and selects a model</li>
+      <li>The frontend sends a POST request to the backend</li>
+      <li>The backend processes the input and calls the LLM API</li>
+      <li>The response is returned and displayed in the UI</li>
+    </ol>
+    <p>
+      The system is intentionally stateless and minimal, mirroring common production patterns without unnecessary
+      complexity.
+    </p>
+
+    <h2>Use of AI</h2>
+    <p>AI development tools were used to:</p>
+    <ul>
+      <li>Scaffold the application structure</li>
+      <li>Generate API integration code</li>
+      <li>Accelerate setup and iteration during deployment</li>
+    </ul>
+    <p>
+      AI was treated as an execution accelerator — not a replacement for understanding system behavior or architectural decisions.
+    </p>
+
+    <h2>Applying This to Modern Software Quality Engineering</h2>
+    <p>
+      One of the primary motivations behind Netscape is exploring how LLMs can be embedded into internal systems used by
+      Software Quality Assurance teams.
+    </p>
+    <p>Using the same backend-driven API pattern, an SQA organization could:</p>
+    <ul>
+      <li>Integrate LLMs into internal QA tools rather than external chat interfaces</li>
+      <li>Combine LLM reasoning with proprietary data such as existing test cases, historical defect data, and requirements/acceptance criteria</li>
+      <li>Use AI to assist with test design while maintaining human review and ownership</li>
+    </ul>
+    <p>
+      <strong>Example application:</strong> An internal tool that sends requirements and historical QA data to an LLM to generate
+      candidate test cases, edge scenarios, and negative paths — accelerating test creation without removing human judgment.
+    </p>
+
+    <h2>Leadership Perspective</h2>
+    <p>
+      As a director, I build proofs of concept like Netscape to understand technologies end to end before asking teams to adopt them.
+    </p>
+    <p>This approach allows me to:</p>
+    <ul>
+      <li>Identify real integration boundaries</li>
+      <li>Evaluate tradeoffs early</li>
+      <li>Guide teams with working examples rather than assumptions</li>
+    </ul>
+    <p>
+      The value of this project is not the app itself — it’s the clarity it creates.
+    </p>
+
+    <h2>What I’d Change for Production</h2>
+    <ul>
+      <li>Support for multiple LLM providers</li>
+      <li>Authentication and usage tracking</li>
+      <li>Cost and latency monitoring</li>
+      <li>Persistent conversation state</li>
+      <li>Prompt governance and safety controls</li>
+    </ul>
+
+    <div class="divider"></div>
+    <p><small>Last updated: <!-- optional --> </small></p>
+  </main>
+</body>
+</html>
