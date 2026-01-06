@@ -1,11 +1,12 @@
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agentic AI – Test Case Generation POC</title>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agentic AI – Test Case Generation POC</title>
+<style>
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background-color: #ffffff;
@@ -44,28 +45,25 @@
     </style>
 </head>
 <body>
-    <h1>Agentic AI: Plain-English Requirements to Automated Tests</h1>
-    <p>
+<h1>Agentic AI: Plain-English Requirements to Automated Tests</h1>
+<p>
         This project is a working proof-of-concept built with <strong>Flowise</strong> that demonstrates how an agentic AI system can convert natural language software requirements into structured, automated test steps.
     </p>
-    <p>
+<p>
         The intent is not to create a production-ready pipeline, but to explore and showcase how modern large language models (LLMs) can bridge the gap between manual QA input and executable automation.
     </p>
-
-    <h2>Core Features</h2>
-    <ul>
-        <li><strong>Prompt Template Node:</strong> Captures plain-English input such as “the user logs in with username and password.”</li>
-        <li><strong>LLM Node:</strong> Interprets the requirement using OpenAI’s model (or compatible LLMs) to reason about appropriate interaction steps.</li>
-        <li><strong>Structured Output Parser:</strong> Validates the output against a defined schema to ensure it matches a predictable JSON structure.</li>
-        <li><strong>Custom JS Function:</strong> (optional) For transforming, filtering, or routing results between nodes.</li>
-        <li><strong>Set Variable & Write File Nodes:</strong> Store results and optionally write out the generated test steps to file.</li>
-    </ul>
-
-    <h2>Example Input</h2>
-    <pre><code>"The user logs in with username and password and clicks submit."</code></pre>
-
-    <h2>Example Output</h2>
-    <pre><code>{
+<h2>Core Features</h2>
+<ul>
+<li><strong>Prompt Template Node:</strong> Captures plain-English input such as “the user logs in with username and password.”</li>
+<li><strong>LLM Node:</strong> Interprets the requirement using OpenAI’s model (or compatible LLMs) to reason about appropriate interaction steps.</li>
+<li><strong>Structured Output Parser:</strong> Validates the output against a defined schema to ensure it matches a predictable JSON structure.</li>
+<li><strong>Custom JS Function:</strong> (optional) For transforming, filtering, or routing results between nodes.</li>
+<li><strong>Set Variable &amp; Write File Nodes:</strong> Store results and optionally write out the generated test steps to file.</li>
+</ul>
+<h2>Example Input</h2>
+<pre><code>"The user logs in with username and password and clicks submit."</code></pre>
+<h2>Example Output</h2>
+<pre><code>{
   "steps": [
     { "action": "type", "target": "#username", "value": "testuser" },
     { "action": "type", "target": "#password", "value": "password123" },
@@ -73,17 +71,14 @@
     { "action": "wait", "target": "#dashboard" }
   ]
 }</code></pre>
-
-    <h2>Why This Matters</h2>
-    <p>
-        QA automation is often bottlenecked by the manual translation of requirements into code. This POC highlights a future where AI can support testers by rapidly prototyping test steps, even if human oversight remains essential for validation and deployment.
+<h2>Why This Matters</h2>
+<p>
+        QA automation is often bottlenecked by the manual translation of requirements into test cases and then into automation code. This POC highlights a future where AI can support testers by rapidly prototyping test steps, even if human oversight remains essential for validation and deployment.
     </p>
-
-    <h2>Limitations</h2>
-    <p>
+<h2>Limitations</h2>
+<p>
         While promising, this is an empirical experiment. Real-world usage requires hardened flows, richer context handling, input validation, and integration with production-grade testing tools like TestCafe, Playwright, or Cypress.
     </p>
-
-    <p><a href="https://leorojas.com" target="_blank">← Back to Portfolio </a></p>
+<p><p>This POC was created using Flowise (v2.2.8) running locally on my computer — not the hosted Flowise cloud version. You can download the canvas JSON file to load it into your own local Flowise setup: <a href="Runs requirements to testing json Chatflow (2).json">Download Flowise Canvas JSON</a></p><a href="https://leorojas.com" target="_blank">← Back to Portfolio</a></p>
 </body>
 </html>
