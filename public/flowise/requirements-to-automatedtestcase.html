@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agentic AI for Test Automation - Proof of Concept</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.6; color: #333; }
+    h1, h2 { color: #00538a; }
+    pre { background: #f4f4f4; padding: 1em; overflow-x: auto; border-left: 4px solid #00538a; }
+    code { font-family: Consolas, monospace; color: #c7254e; }
+    a { color: #00538a; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <h1>Agentic AI for Automated Test Generation</h1>
+
+  <p>
+    This proof-of-concept (POC) project explores how an agentic AI system can automate the transformation of natural language requirements into structured test steps and test automation code for web applications. Built with <a href="https://flowiseai.com/" target="_blank">Flowise</a>, this system leverages the power of large language models to close the gap between manual QA scenarios and coded automation.
+  </p>
+
+  <h2>🔍 Problem Statement</h2>
+  <p>
+    Manual test case authoring is time-consuming, repetitive, and prone to gaps in translation between business intent and implementation. The goal of this POC is to streamline test case generation by allowing QA engineers or product managers to input software behavior in plain English, and receive structured test steps or even executable code in return.
+  </p>
+
+  <h2>🧠 Architecture Overview</h2>
+  <ul>
+    <li><strong>Frontend Input:</strong> Users enter English-language requirements like: <em>"The user logs in with username and password and sees the dashboard."</em></li>
+    <li><strong>Flowise Engine:</strong> A chatflow processes the input using a Prompt Template node, a structured parser, and optionally a Custom JS function or Set Variable for debugging.</li>
+    <li><strong>Output:</strong> The system returns a clean JSON object representing test steps, like:</li>
+  </ul>
+
+  <pre><code>{
+  "steps": [
+    { "action": "type", "target": "#username", "value": "testuser" },
+    { "action": "type", "target": "#password", "value": "securepass" },
+    { "action": "click", "target": "#login" },
+    { "action": "wait", "target": "#dashboard" }
+  ]
+}</code></pre>
+
+  <h2>⚙️ Flowise Configuration</h2>
+  <p>The Flowise chatflow uses the following components:</p>
+  <ul>
+    <li><strong>Prompt Template:</strong> Includes clear instructions for the LLM to extract actions like click, type, wait.</li>
+    <li><strong>templateFormat:</strong> Set to <code>jinja-2</code> for compatibility with LLMChain processing.</li>
+    <li><strong>Structured Output Parser:</strong> Parses the returned string into JSON for downstream use.</li>
+    <li><strong>Set Variable / Write File Node:</strong> Optional for debugging or exporting results.</li>
+  </ul>
+
+  <h2>💡 Key Learnings</h2>
+  <ul>
+    <li>Prompt formatting must escape all literal braces (<code>{{</code> and <code>}}</code>) correctly to avoid runtime schema errors.</li>
+    <li>Temperature and model selection significantly affect test step creativity vs. precision.</li>
+    <li>Debugging is easiest when using <code>Set Variable</code> or <code>Write File</code> nodes before complex parsers.</li>
+  </ul>
+
+  <h2>🚀 Next Steps</h2>
+  <ul>
+    <li>Generate real TestCafe or Playwright code from the parsed JSON.</li>
+    <li>Integrate visual testing or exploratory step suggestions.</li>
+    <li>Add error handling, validation feedback, and multi-language support.</li>
+  </ul>
+
+  <p>
+    View other projects on my portfolio at <a href="https://leorojas.com" target="_blank">leorojas.com</a>
+  </p>
+
+</body>
+</html>
