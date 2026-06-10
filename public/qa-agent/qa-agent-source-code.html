@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Agent Source Code</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #00e5a0;
+    --accent2: #7c6eff;
+    --warn: #ff9f43;
+    --danger: #ff6b6b;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --pass: #00e5a0;
+    --fail: #ff6b6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  .hero {
+    min-height: 56vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -220px;
+    right: -220px;
+    width: 620px;
+    height: 620px;
+    background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    max-width: 950px;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.35s;
+  }
+
+  .hero-title span { color: var(--accent); }
+
+  .hero-desc {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 650px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.5s;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.65s;
+  }
+
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .meta-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 80px 60px 100px; }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    line-height: 1.2;
+  }
+
+  p { color: #b8b8d0; margin-bottom: 20px; font-size: 1.05rem; }
+
+  .source-card {
+    background: #080810;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    margin-top: 40px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.24);
+  }
+
+  .source-bar {
+    background: var(--surface2);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .source-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .source-dot:nth-child(1) { background: #ff5f57; }
+  .source-dot:nth-child(2) { background: #febc2e; }
+  .source-dot:nth-child(3) { background: #28c840; }
+
+  .source-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-left: 8px;
+  }
+
+  .source-body { overflow: auto; max-height: none; }
+  table.code-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.75;
+  }
+
+  .line-num {
+    width: 64px;
+    padding: 0 18px;
+    text-align: right;
+    color: #555570;
+    background: rgba(255,255,255,0.015);
+    border-right: 1px solid var(--border);
+    user-select: none;
+    vertical-align: top;
+  }
+
+  .line-code {
+    padding: 0 22px;
+    color: #b8b8d0;
+    white-space: pre;
+    vertical-align: top;
+  }
+
+  .line-code code {
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  tr:hover .line-num, tr:hover .line-code { background: rgba(124,110,255,0.08); }
+
+  .note-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .note-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    padding: 24px;
+  }
+
+  .note-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent2);
+  }
+
+  .note-card p { font-size: 0.88rem; color: var(--muted); margin: 0; }
+
+
+  .console-output {
+    padding: 28px 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: #b8b8d0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .console-output .prompt { color: var(--accent); }
+
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .footer-left { font-family: 'Syne', sans-serif; font-size: 0.9rem; color: var(--muted); }
+  .footer-left strong { color: var(--text); display: block; font-size: 1rem; margin-bottom: 4px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    .hero { padding: 60px 28px; }
+    main { padding: 60px 20px 80px; }
+    footer { padding: 40px 28px; }
+    table.code-table { font-size: 0.74rem; }
+    .line-num { width: 48px; padding: 0 10px; }
+    .line-code { padding: 0 14px; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-label">Portfolio · Source Code · QA Engineering</div>
+  <h1 class="hero-title">QA Agent<br><span>Source Code</span></h1>
+  <p class="hero-desc">
+    The Python script behind the AI-powered QA agent POC.
+  </p>
+  <div class="hero-meta">
+    <div class="meta-item"><span class="meta-label">File</span><span class="meta-value">qa_agent.py</span></div>
+    <div class="meta-item"><span class="meta-label">Stack</span><span class="meta-value">Python · Claude API · Playwright MCP</span></div>
+    <div class="meta-item"><span class="meta-label">Purpose</span><span class="meta-value">Agentic Testing POC</span></div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="section-num">01 — Source</div>
+    <h2>Python Script</h2>
+    <p>
+      This page intentionally renders the code as text in the browser.
+    </p>
+
+    <div class="source-card">
+      <div class="source-bar">
+        <div class="source-dot"></div>
+        <div class="source-dot"></div>
+        <div class="source-dot"></div>
+        <span class="source-title">qa_agent.py</span>
+      </div>
+      <div class="source-body">
+        <table class="code-table" aria-label="qa_agent.py source code">
+          <tbody>
+<tr><td class="line-num">1</td><td class="line-code"><code>import asyncio</code></td></tr>
+<tr><td class="line-num">2</td><td class="line-code"><code>import anthropic</code></td></tr>
+<tr><td class="line-num">3</td><td class="line-code"><code>from mcp import ClientSession, StdioServerParameters</code></td></tr>
+<tr><td class="line-num">4</td><td class="line-code"><code>from mcp.client.stdio import stdio_client</code></td></tr>
+<tr><td class="line-num">5</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">6</td><td class="line-code"><code>async def run_qa_agent():</code></td></tr>
+<tr><td class="line-num">7</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">8</td><td class="line-code"><code>    TARGET_URL = &quot;https://www.saucedemo.com&quot;</code></td></tr>
+<tr><td class="line-num">9</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">10</td><td class="line-code"><code>    MISSION = f&quot;&quot;&quot;</code></td></tr>
+<tr><td class="line-num">11</td><td class="line-code"><code>You are a senior QA engineer. Explore the following app and find bugs or UX issues.</code></td></tr>
+<tr><td class="line-num">12</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">13</td><td class="line-code"><code>App URL: {TARGET_URL}</code></td></tr>
+<tr><td class="line-num">14</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">15</td><td class="line-code"><code>Test these two scenarios:</code></td></tr>
+<tr><td class="line-num">16</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">17</td><td class="line-code"><code>1. Happy path: Log in with username &#x27;standard_user&#x27; and password &#x27;secret_sauce&#x27;,</code></td></tr>
+<tr><td class="line-num">18</td><td class="line-code"><code>   add an item to cart, and complete checkout.</code></td></tr>
+<tr><td class="line-num">19</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">20</td><td class="line-code"><code>2. Error path: Try to log in with wrong credentials and verify a proper error message appears.</code></td></tr>
+<tr><td class="line-num">21</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">22</td><td class="line-code"><code>For each scenario report:</code></td></tr>
+<tr><td class="line-num">23</td><td class="line-code"><code>- What steps you took</code></td></tr>
+<tr><td class="line-num">24</td><td class="line-code"><code>- What passed ✅</code></td></tr>
+<tr><td class="line-num">25</td><td class="line-code"><code>- What failed or looked broken ⚠️</code></td></tr>
+<tr><td class="line-num">26</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">27</td><td class="line-code"><code>Be concise. End with a VERDICT summary.</code></td></tr>
+<tr><td class="line-num">28</td><td class="line-code"><code>&quot;&quot;&quot;</code></td></tr>
+<tr><td class="line-num">29</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">30</td><td class="line-code"><code>    # Connect to Playwright MCP</code></td></tr>
+<tr><td class="line-num">31</td><td class="line-code"><code>    server_params = StdioServerParameters(</code></td></tr>
+<tr><td class="line-num">32</td><td class="line-code"><code>        command=&quot;npx&quot;,</code></td></tr>
+<tr><td class="line-num">33</td><td class="line-code"><code>        args=[&quot;@playwright/mcp&quot;, &quot;--headless&quot;]</code></td></tr>
+<tr><td class="line-num">34</td><td class="line-code"><code>    )</code></td></tr>
+<tr><td class="line-num">35</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">36</td><td class="line-code"><code>    async with stdio_client(server_params) as (read, write):</code></td></tr>
+<tr><td class="line-num">37</td><td class="line-code"><code>        async with ClientSession(read, write) as session:</code></td></tr>
+<tr><td class="line-num">38</td><td class="line-code"><code>            await session.initialize()</code></td></tr>
+<tr><td class="line-num">39</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">40</td><td class="line-code"><code>            # Get available tools from Playwright MCP</code></td></tr>
+<tr><td class="line-num">41</td><td class="line-code"><code>            tools_result = await session.list_tools()</code></td></tr>
+<tr><td class="line-num">42</td><td class="line-code"><code>            tools = [</code></td></tr>
+<tr><td class="line-num">43</td><td class="line-code"><code>                {</code></td></tr>
+<tr><td class="line-num">44</td><td class="line-code"><code>                    &quot;name&quot;: tool.name,</code></td></tr>
+<tr><td class="line-num">45</td><td class="line-code"><code>                    &quot;description&quot;: tool.description,</code></td></tr>
+<tr><td class="line-num">46</td><td class="line-code"><code>                    &quot;input_schema&quot;: tool.inputSchema</code></td></tr>
+<tr><td class="line-num">47</td><td class="line-code"><code>                }</code></td></tr>
+<tr><td class="line-num">48</td><td class="line-code"><code>                for tool in tools_result.tools</code></td></tr>
+<tr><td class="line-num">49</td><td class="line-code"><code>            ]</code></td></tr>
+<tr><td class="line-num">50</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">51</td><td class="line-code"><code>            client = anthropic.Anthropic()</code></td></tr>
+<tr><td class="line-num">52</td><td class="line-code"><code>            messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: MISSION}]</code></td></tr>
+<tr><td class="line-num">53</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">54</td><td class="line-code"><code>            print(&quot;🤖 Agent starting...\n&quot;)</code></td></tr>
+<tr><td class="line-num">55</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">56</td><td class="line-code"><code>            # Agent loop - keeps running until Claude stops using tools</code></td></tr>
+<tr><td class="line-num">57</td><td class="line-code"><code>            while True:</code></td></tr>
+<tr><td class="line-num">58</td><td class="line-code"><code>                response = client.messages.create(</code></td></tr>
+<tr><td class="line-num">59</td><td class="line-code"><code>                    model=&quot;claude-sonnet-4-20250514&quot;,</code></td></tr>
+<tr><td class="line-num">60</td><td class="line-code"><code>                    max_tokens=4096,</code></td></tr>
+<tr><td class="line-num">61</td><td class="line-code"><code>                    system=&quot;You are a senior QA engineer. Use the browser tools to navigate and test the app.&quot;,</code></td></tr>
+<tr><td class="line-num">62</td><td class="line-code"><code>                    messages=messages,</code></td></tr>
+<tr><td class="line-num">63</td><td class="line-code"><code>                    tools=tools</code></td></tr>
+<tr><td class="line-num">64</td><td class="line-code"><code>                )</code></td></tr>
+<tr><td class="line-num">65</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">66</td><td class="line-code"><code>                # Collect any text output</code></td></tr>
+<tr><td class="line-num">67</td><td class="line-code"><code>                for block in response.content:</code></td></tr>
+<tr><td class="line-num">68</td><td class="line-code"><code>                    if hasattr(block, &quot;text&quot;):</code></td></tr>
+<tr><td class="line-num">69</td><td class="line-code"><code>                        print(block.text)</code></td></tr>
+<tr><td class="line-num">70</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">71</td><td class="line-code"><code>                # If Claude is done, stop</code></td></tr>
+<tr><td class="line-num">72</td><td class="line-code"><code>                if response.stop_reason == &quot;end_turn&quot;:</code></td></tr>
+<tr><td class="line-num">73</td><td class="line-code"><code>                    break</code></td></tr>
+<tr><td class="line-num">74</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">75</td><td class="line-code"><code>                # If Claude wants to use tools, execute them</code></td></tr>
+<tr><td class="line-num">76</td><td class="line-code"><code>                if response.stop_reason == &quot;tool_use&quot;:</code></td></tr>
+<tr><td class="line-num">77</td><td class="line-code"><code>                    messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})</code></td></tr>
+<tr><td class="line-num">78</td><td class="line-code"><code>                    tool_results = []</code></td></tr>
+<tr><td class="line-num">79</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">80</td><td class="line-code"><code>                    for block in response.content:</code></td></tr>
+<tr><td class="line-num">81</td><td class="line-code"><code>                        if block.type == &quot;tool_use&quot;:</code></td></tr>
+<tr><td class="line-num">82</td><td class="line-code"><code>                            print(f&quot;🔧 Using tool: {block.name}&quot;)</code></td></tr>
+<tr><td class="line-num">83</td><td class="line-code"><code>                            result = await session.call_tool(block.name, block.input)</code></td></tr>
+<tr><td class="line-num">84</td><td class="line-code"><code>                            tool_results.append({</code></td></tr>
+<tr><td class="line-num">85</td><td class="line-code"><code>                                &quot;type&quot;: &quot;tool_result&quot;,</code></td></tr>
+<tr><td class="line-num">86</td><td class="line-code"><code>                                &quot;tool_use_id&quot;: block.id,</code></td></tr>
+<tr><td class="line-num">87</td><td class="line-code"><code>                                &quot;content&quot;: str(result.content)</code></td></tr>
+<tr><td class="line-num">88</td><td class="line-code"><code>                            })</code></td></tr>
+<tr><td class="line-num">89</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">90</td><td class="line-code"><code>                    messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: tool_results})</code></td></tr>
+<tr><td class="line-num">91</td><td class="line-code"><code>                else:</code></td></tr>
+<tr><td class="line-num">92</td><td class="line-code"><code>                    break</code></td></tr>
+<tr><td class="line-num">93</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">94</td><td class="line-code"><code>            print(&quot;\n✅ Done.&quot;)</code></td></tr>
+<tr><td class="line-num">95</td><td class="line-code"><code> </code></td></tr>
+<tr><td class="line-num">96</td><td class="line-code"><code>asyncio.run(run_qa_agent())</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02 — What This Code Shows</div>
+    <h2>Agent Loop in One File</h2>
+    <div class="note-grid">
+      <div class="note-card">
+        <h3>Mission Driven</h3>
+        <p>The test objective is written in plain English instead of hardcoded browser steps.</p>
+      </div>
+      <div class="note-card">
+        <h3>Tool Use</h3>
+        <p>The agent receives browser tools from Playwright MCP and decides when to use them.</p>
+      </div>
+      <div class="note-card">
+        <h3>Observe and Adapt</h3>
+        <p>The loop sends tool results back to the model so it can continue navigating and reporting.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 — Console Run Output</div>
+    <h2>What the Agent Printed During a Run</h2>
+    <p>
+      These are the plain-text console logs generated when running <code>python qa_agent.py</code>. They show the agent starting, using browser tools, observing the app, and producing the final QA verdict.
+    </p>
+
+    <div class="source-card">
+      <div class="source-bar">
+        <div class="source-dot"></div>
+        <div class="source-dot"></div>
+        <div class="source-dot"></div>
+        <span class="source-title">qa_agent_console_logs.txt</span>
+      </div>
+      <pre class="console-output" aria-label="QA agent console logs">python qa_agent.py
+
+🤖 Agent starting...
+
+C:\Users\leone\localdocs\2025 work\replit\qa-agent\qa_agent.py:58: DeprecationWarning: The model &#x27;claude-sonnet-4-20250514&#x27; is deprecated and will reach end-of-life on June 15th, 2026.
+Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.
+  response = client.messages.create(
+I&#x27;ll test the Saucedemo app by exploring both the happy path and error path scenarios. Let me start by navigating to the app.
+🔧 Using tool: browser_navigate
+Now let me take a snapshot of the current page to see the login interface:
+🔧 Using tool: browser_snapshot
+Great! I can see the login page with username and password fields. I notice there are console errors. Let me check those first:
+🔧 Using tool: browser_console_messages
+I can see there are networking errors related to external analytics services. Now let me start testing the scenarios.
+
+## Scenario 1: Happy Path - Valid Login and Checkout
+
+Let me log in with the valid credentials:
+🔧 Using tool: browser_fill_form
+Let me get a fresh snapshot and use proper selectors:
+🔧 Using tool: browser_snapshot
+🔧 Using tool: browser_type
+🔧 Using tool: browser_type
+Now let me click the login button:
+🔧 Using tool: browser_click
+Great! Login was successful and I&#x27;m now on the inventory page. Let me take a snapshot to see the products:
+🔧 Using tool: browser_snapshot
+Perfect! I can see the products page with 6 items. I notice there&#x27;s no shopping cart icon visible yet. Let me add the first item (Sauce Labs Backpack) to cart:
+🔧 Using tool: browser_click
+Let me check if a shopping cart badge appeared and if the button changed to &quot;Remove&quot;:
+🔧 Using tool: browser_snapshot
+I notice the button still shows &quot;Add to cart&quot; and I don&#x27;t see a shopping cart icon yet. This might be a bug or the UI might be updating asynchronously. Let me check if there&#x27;s a shopping cart link/icon by evaluating the page:
+🔧 Using tool: browser_evaluate
+⚠️ **Issue Found**: The add to cart functionality appears to be broken! The item was supposedly added to cart, but:
+- The button still says &quot;Add to cart&quot; (should change to &quot;Remove&quot;)
+- No cart badge appeared with item count
+- No remove button appeared
+
+Let me try clicking the cart icon anyway to see what happens:
+🔧 Using tool: browser_evaluate
+Now I&#x27;m on the cart page. Let me check if the item is actually in the cart:
+🔧 Using tool: browser_snapshot
+⚠️ **Major Bug Confirmed**: The cart is empty! The add to cart functionality is completely broken. The item was not added to cart despite clicking the &quot;Add to cart&quot; button.
+
+Let me go back to the products page and try to add a different item to see if this is a consistent issue:
+🔧 Using tool: browser_click
+The continue shopping button didn&#x27;t work either. Let me navigate back manually:
+🔧 Using tool: browser_navigate
+Let me try adding a different item (Bike Light) to see if it&#x27;s a global issue:
+🔧 Using tool: browser_click
+Let me check if this time the add to cart worked:
+🔧 Using tool: browser_evaluate
+The same issue persists - add to cart is completely broken across all items.
+
+Now let me test **Scenario 2: Error Path - Invalid Login**
+🔧 Using tool: browser_navigate
+Let me try logging in with invalid credentials:
+🔧 Using tool: browser_type
+🔧 Using tool: browser_type
+🔧 Using tool: browser_click
+Good, I&#x27;m still on the login page. Let me check for any error messages:
+🔧 Using tool: browser_snapshot
+⚠️ **Bug Found**: No error message is displayed after entering invalid credentials! The login should show an error message like &quot;Invalid username or password&quot; but instead it just stays on the login page with no feedback to the user.
+
+Let me also test with a valid username but wrong password to see if that produces an error:
+🔧 Using tool: browser_type
+🔧 Using tool: browser_type
+🔧 Using tool: browser_click
+🔧 Using tool: browser_evaluate
+There&#x27;s an error container in the HTML but it&#x27;s empty. This confirms that error handling is broken.
+
+Let me also test with a locked out user to see if that produces any error:
+🔧 Using tool: browser_type
+🔧 Using tool: browser_type
+🔧 Using tool: browser_click
+🔧 Using tool: browser_snapshot
+Same issue - no error message even for a locked out user who should definitely get a specific error message.
+
+## Test Results Summary
+
+### Scenario 1: Happy Path Login ✅ ⚠️
+**Steps taken:**
+1. Navigated to https://www.saucedemo.com
+2. Entered valid credentials (standard_user/secret_sauce)
+3. Clicked login button
+4. Attempted to add items to cart
+5. Navigated to cart page
+
+**What passed ✅:**
+- Login page loads correctly
+- Valid credentials authentication works
+- User successfully reaches inventory page
+- Product listings display properly with images, prices, descriptions
+- Shopping cart page is accessible
+
+**What failed ⚠️:**
+- **CRITICAL BUG**: Add to cart functionality is completely broken
+  - Clicking &quot;Add to cart&quot; buttons has no effect
+  - Cart badge doesn&#x27;t appear
+  - Items don&#x27;t get added to cart
+  - Buttons don&#x27;t change to &quot;Remove&quot; state
+  - Continue Shopping button from cart doesn&#x27;t work
+- Console errors present (external analytics services failing)
+
+### Scenario 2: Error Path - Invalid Login ⚠️
+**Steps taken:**
+1. Navigated to login page
+2. Tried invalid_user/wrong_password combination
+3. Tried standard_user/wrong_password combination  
+4. Tried locked_out_user/secret_sauce combination
+
+**What passed ✅:**
+- Login page prevents invalid authentication
+- Users stay on login page when credentials are wrong
+- No unauthorized access granted
+
+**What failed ⚠️:**
+- **CRITICAL BUG**: No error messages displayed for any invalid login attempts
+- Empty error container exists in HTML but never gets populated
+- Poor UX - users get no feedback about why login failed
+- Locked out user scenario should show specific &quot;account locked&quot; message but shows nothing
+
+## VERDICT 
+
+🔴 **MAJOR ISSUES FOUND - NOT PRODUCTION READY**
+
+The application has **2 critical bugs** that make it unusable:
+
+1. **Shopping Cart Broken** - Core e-commerce functionality completely non-functional
+2. **No Login Error Messages** - Security/UX issue with no user feedback on failed logins
+
+**Severity**: High - Both bugs impact core user journeys and make the app unsuitable for production use. The shopping cart bug prevents any purchases, while the login error bug creates poor user experience and potential security confusion.
+
+**Recommendation**: Fix both critical bugs before any release. The add to cart functionality needs complete debugging, and proper error handling/messaging needs to be implemented for authentication failures.
+
+✅ Done.</pre>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-left">
+    <strong>QA Agent Source Code</strong>
+    Companion page for the AI-Powered QA Agent displaying the source code and the execution logs.
+  </div>
+</footer>
+</body>
+</html>
